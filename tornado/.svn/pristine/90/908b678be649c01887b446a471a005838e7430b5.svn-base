@@ -1,0 +1,158 @@
+#!/usr/bin/python
+# -*- coding: UTF-8 -*-
+
+import sys
+import json
+import time
+import random
+from robot import Robot
+from robotsManage import RobotsManage
+from flask import *
+
+sys.path.append("..")
+from douyu_utils.chat.network.utils  import  *
+
+reload(sys)
+sys.setdefaultencoding('utf-8')
+
+app = Flask(__name__)
+manage = RobotsManage()
+
+@app.route("/")
+def index():
+    amount = request.args.get('amount')
+    return "Hello World!"
+
+@app.route("/tornado/addroom")
+def addroom():
+    rid = request.args.get('rid')
+    try:
+        manage.addroom(int(rid))
+    except Exception, e:
+        return 'Please enter the correct room number'
+    return 'Successful operation'
+
+@app.route("/tornado/delroom")
+def delroom():
+    rid = request.args.get('rid')
+    try:
+        manage.delroom(int(rid))
+        return 'Successful operation'
+    except Exception, e:
+        return 'Please enter the correct room number'
+
+@app.route("/tornado/setroom")
+def setroom():
+    try:
+        rid = request.args['rid']
+    except Exception, e:
+        return 'Please enter the correct room number'
+    pause = request.args.get('pause')
+    if pause == '1':
+        manage.setpause(int(rid), True)
+    elif pause == '0':
+        manage.setpause(int(rid), False)
+    try:
+        freq = request.args['freq']
+        manage.setfreq(int(rid), int(freq))
+    except Exception, e:
+        pass
+    try:
+        interval = request.args['interval']
+        manage.setinterval(int(rid), int(interval))
+    except Exception, e:
+        pass
+    try:
+        num = request.args['num']
+        manage.setnum(int(rid), int(num))
+    except Exception, e:
+        pass
+    return 'Successful operation'
+
+@app.route("/tornado/sendmsg")
+def sendmsg():
+    rid = request.args.get('rid')
+    msg = request.args.get('msg')
+    repeat = request.args.get('repeat')
+    try:
+        repeat = int(repeat)
+    except Exception, e:
+        repeat = '-1'
+    try:
+        manage.sendmsg(int(rid), msg, int(repeat))
+    except Exception, e:
+        return 'Please enter the correct room number'
+    return 'Successful operation'
+
+def testThread(rid, msg, repeat):
+    if repeat > 10:
+        repeat = 10
+    for i in range(0, repeat):
+        robot = Robot(rid)
+        robot.setpause(False)
+        robot.setfreq(30)
+        robot.sendmsg(msg)
+        robot.isTest = True
+        robot.start()
+        time.sleep(2+random.random())
+
+@app.route("/tornado/testmsg")
+def testmsg():
+    rid = request.args.get('rid')
+    msg = request.args.get('msg')
+    repeat = request.args.get('repeat')
+    if rid and msg and repeat:
+        try:
+            threading.Thread(target=testThread, args=(int(rid), msg, int(repeat))).start()
+        except Exception, e:
+            return 'Please enter param'
+        return 'Successful operation'
+    else:
+        return 'Please enter param'
+
+@app.route("/tornado/roominfo")
+def roominfo():
+    rid = request.args.get('rid')
+    l = []
+    for key in manage.roomsinfo:
+        data = {}
+        ri = manage.roomsinfo[key]
+        for k in ri:
+            if k == 'cr':
+                continue
+            elif k == 'threads':
+                data['threads_num'] = len(ri[k])
+                data['threads'] = []
+                index = 0
+                for t in ri['threads']:
+                    d={}
+                    d['index'] = index
+                    d['rid'] = t.rid
+                    d['stop'] = t.stop_flag
+                    d['pause'] = t.pause
+                    d['freq'] = t.freq
+                    d['msg'] = t.msg
+                    d['nickname'] = t.nickname
+                    d['send_count'] = t.send_count
+                    d['max_send'] = t.max_send
+                    data['threads'].append(d)
+                    #data['threads'].append(d.copy())
+                    index += 1
+            else:
+                data[k] = ri[k]
+        if key == rid:
+            return json.dumps(data)
+        l.append({key:data})
+    if rid:
+        return '[]'
+    else:
+        return json.dumps(l)
+
+def flask_start():
+    app.run(host='0.0.0.0', threaded=True,debug=False, use_reloader=False)
+
+if __name__=="__main__":
+    if not os.path.exists('error'):
+        os.makedirs('error')
+    threading.Thread(target=flask_start, args=()).start()
+    manage.start()

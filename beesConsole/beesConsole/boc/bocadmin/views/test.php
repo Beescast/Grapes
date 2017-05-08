@@ -1,0 +1,1 @@
+<?php exit();?>{"time":1493259112,"result":"error"}

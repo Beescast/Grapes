@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>更新参数</title>
+    <style>
+        *{margin:0px;padding:0px;}
+        #args{padding:20px;margin:20px 50px;display:inline-block;}
+        #rid{margin-left:99px;}
+        #delay{margin-left:31px;}
+        #timestep{margin-left:5px;}
+        #topk{margin-left:53px;}
+        #total{margin-left:37px;}
+        #bweight{margin-left:9px;}
+        #tweight{margin-left:14px;}
+        #sweight{margin-left:12px;}
+        #bt{width:100px;height:30px;font-size:16px;text-align:center;cursor:pointer;}
+    </style>
+    <script>
+        window.onload = function () {
+            var xhr
+            if(window.XMLHttpRequest){
+                xhr = new XMLHttpRequest()
+            }else{
+                xhr = new ActiveXObject('Microsoft.XMLHTTP')
+            }
+            document.getElementById('bt').onclick = function () {
+                var rid = document.getElementById('rid').value
+                if (! Boolean(rid)){
+                    alert('房间号不能为空')
+                    return
+                }
+                var delay = document.getElementById('delay').value
+                var timestep = document.getElementById('timestep').value
+                var topk = document.getElementById('topk').value
+                var total = document.getElementById('total').value
+                var bweight = document.getElementById('bweight').value
+                var tweight = document.getElementById('tweight').value
+                var sweight = document.getElementById('sweight').value
+                data = {
+                    rid:rid,
+                    delay:delay,
+                    timestep:timestep,
+                    topk:topk,
+                    total:total,
+                    bweight:bweight,
+                    tweight:tweight,
+                    sweight:sweight
+                }
+                xhr.onreadystatechange = function () {
+                    if (xhr.readyState==4 && xhr.status==200){
+                        response = xhr.responseText
+                        alert(response)
+                    }
+                }
+                xhr.open('POST','/update',true)
+                xhr.send(JSON.stringify(data))
+            }
+            ridObj = document.getElementById('rid')
+            ridObj.onblur = function(){
+                rid = ridObj.value
+                xhr.onreadystatechange = function(){
+                    if (xhr.readyState==4 && xhr.status==200)
+                    {
+                        response = JSON.parse(xhr.responseText)
+                        if (response.code==0)
+                        {
+                            alert(response.msg)
+                        }else{
+                            data = response.data
+                            total = data['total']
+                            bw = data['bw']
+                            tw = data['tw']
+                            sw = data['sw']
+                            timestep = data['timestep']
+                            topk = data['topk']
+                            delay = data['delay']
+                            document.getElementById('total').setAttribute('placeholder',total)
+                            document.getElementById('bweight').setAttribute('placeholder',bw)
+                            document.getElementById('tweight').setAttribute('placeholder',tw)
+                            document.getElementById('sweight').setAttribute('placeholder',sw)
+                            document.getElementById('timestep').setAttribute('placeholder',timestep)
+                            document.getElementById('topk').setAttribute('placeholder',topk)
+                            document.getElementById('delay').setAttribute('placeholder',delay)
+                        }
+                    }
+                }
+                url = '/roominfo/' + rid
+                xhr.open('GET',url,true)
+                xhr.send()
+            }
+            ridObj.onchange = function () {
+                document.getElementById('total').removeAttribute('placeholder')
+                document.getElementById('bweight').removeAttribute('placeholder')
+                document.getElementById('tweight').removeAttribute('placeholder')
+                document.getElementById('sweight').removeAttribute('placeholder')
+                document.getElementById('timestep').removeAttribute('placeholder')
+                document.getElementById('topk').removeAttribute('placeholder')
+                document.getElementById('delay').removeAttribute('placeholder')
+            }
+        }
+    </script>
+</head>
+<body>
+    <fieldset id="args">
+        <legend>设置参数</legend>
+        <label>房间号(rid): <input id="rid" type="text" /></label><br />
+        <label>消息刷新时间(delay): <input id="delay" type="text" /></label><br />
+        <label>弹幕提取间隔(timestep): <input id="timestep" type="text" /></label><br />
+        <label>关键词数量(topk): <input id="topk" type="text" /></label><br />
+        <label>提取弹幕上限(total): <input id="total" type="text" /></label><br />
+        <label>备用弹幕比例(bweight): <input id="bweight" type="text" /></label><br />
+        <label>实时弹幕比例(tweight): <input id="tweight" type="text" /></label><br />
+        <label>自编弹幕比例(sweight): <input id="sweight" type="text" /></label><br />
+        <button id="bt">点击更新</button>
+    </fieldset>
+</body>
+</html>

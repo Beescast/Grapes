@@ -1,0 +1,15 @@
+﻿  auth.cpp
+  正在生成代码...
+  正在编译...
+  swfapi.cpp
+d:\visual studio 2015\projects\grapes_client\swfapi.cpp(39): warning C4267: “参数”: 从“size_t”转换到“int”，可能丢失数据
+  robot.cpp
+  client_dll.cpp
+d:\visual studio 2015\projects\grapes_client\client_dll.cpp(189): warning C4244: “参数”: 从“time_t”转换到“unsigned int”，可能丢失数据
+  正在生成代码...
+  正在跳过...(未检测到相关更改)
+  room.cpp
+  manage.cpp
+  grapes_client.cpp
+  grapes_client.vcxproj -> D:\visual studio 2015\Projects\grapes_client\x64\Debug\grapes_client.exe
+  grapes_client.vcxproj -> D:\visual studio 2015\Projects\grapes_client\x64\Debug\grapes_client.pdb (Full PDB)
